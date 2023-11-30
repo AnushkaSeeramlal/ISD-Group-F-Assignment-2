@@ -4,6 +4,5 @@
 #from tkinter.messagebox import showinfo
 #from tkinter.scrolledtext import ScrolledText
 #from tkinter.ttk import Combobox
-import customtkinter as ctk
-
-from login import LoginView 
+from tkinter import ttk, Tk
+from login import LoginView
