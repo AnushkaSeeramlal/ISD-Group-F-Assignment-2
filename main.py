@@ -7,3 +7,5 @@
 import customtkinter as ctk
 
 from login import LoginView 
+
+from Bookings import DatabaseHelpers
