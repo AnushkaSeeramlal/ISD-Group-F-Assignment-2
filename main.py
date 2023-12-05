@@ -16,11 +16,11 @@
 import tkinter as tk
 
 # External imports
-
 # Local imports
 import Bookings
 from login import LoginView
 from roles import AdminView, CustomerView, DriverView
+
 
 class MainFrame(tk.Frame):
     '''Main frame for application
@@ -35,7 +35,7 @@ class MainFrame(tk.Frame):
         self.pack()
         self.create_default_widgets()
 
-        self.db = Bookings.BookingDatabase()
+        self.db = Bookings.BookingDatabase() 
         self._user = None
 
 
@@ -85,7 +85,7 @@ def main():
     window.resizable(width=False, height=False)
     window.eval("tk::PlaceWindow . center")
     window.geometry("600x400")
-    main_frame = MainFrame(window)
+    MainFrame(window)
     window.mainloop()
 
 
