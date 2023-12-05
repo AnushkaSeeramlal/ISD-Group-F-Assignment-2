@@ -1,72 +1,87 @@
-#import tkinter as tk
-
-import customtkinter as ctk
+'''Login View
+'''
+# System imports
 import tkinter as tk
-from tkinter import *
-from PIL import Image, ImageTk
 
-#ctk.set_default_color_theme("./themes/yellow.json")
+class LoginView:
 
-user_id = "customer"
-user_pass = "password"
+    accounts = {
+        'admin': {
+            'password': 'adminpassword',
+            'role': 'admin',
+        },
+        'david': {
+            'password': 'customerpassword',
+            'role': 'customer',
+        },
+        'joel': {
+            'password': 'customerpassword',
+            'role': 'customer',
+        },
+        'driver': {
+            'password': 'driverpassword',
+            'role': 'driver',
+        },
+        'crazy': {
+            'password': 'crazypassword',
+            'role': 'crazy',
+        }
 
-ctk.set_appearance_mode("System")  # Modes: system (default), light, dark
-ctk.set_default_color_theme(
-    "./themes/yellow.json")  # Themes: blue (default), dark-blue, green
+    }
 
-def btn1_login():
-  if (user_id_entry.get() == user_id) and (password_entry.get() == user_pass):
-    text_var.set("Login Successful")
-  else:
-    text_var.set("Login Failed. Check username or password")
+    def __init__(self, frame=None):
+        self._frame = frame
+        self.create_widgets()
 
-#main window
-window = ctk.CTk()
-window.title("Taxi Booking App")
-window.eval("tk::PlaceWindow . center")
-window.geometry("500x350")
+    def create_widgets(self):
+        self._frame._clear_widgets()
+        # Main Label
+        self.label = tk.Label(self._frame, text="Login to Taxi Booking App")
+        self.label.grid(row=0, column=1)
+        # Status messages
+        self.text_var = tk.StringVar()
+        self.status_text = tk.Label(self._frame, textvariable=self.text_var, width=50)
+        self.status_text.grid(row=1, column=1)
+        # Username
+        self.lbl_user_id = tk.Label(self._frame, text="Username: ")
+        self.lbl_user_id.grid(row=2,column=0)
+        self.entry_username = tk.Entry(self._frame, width=20)
+        self.entry_username.grid(row=2,column=1)
+        # Password
+        self.lbl_password = tk.Label(self._frame, text="Password: ")
+        self.lbl_password.grid(row=3,column=0)
+        self.entry_password = tk.Entry(self._frame, width=20, show="*")
+        self.entry_password.grid(row=3,column=1)
+        # Login button
+        self.btn_login = tk.Button(self._frame,text="Login",command=self._btn_login_click)
+        self.btn_login.grid(row=4,column=1)
 
-frame = ctk.CTkFrame(master=window)
-frame.pack(pady=20, padx=20, fill="both", expand=True)
+    def _btn_login_click(self):
+        '''Login to account and if successful redirect to appropriate view.
+        '''
+        username = self.entry_username.get()
+        if username not in self.accounts:
+            self.text_var.set("User does not exist")
+            return
 
-hello = ctk.CTkLabel(master=frame, text="""Welcome to the Taxi Booking App!
-Please Login to Continue""")
-#hello.pack(expand=True)
-hello.place(relx=0.5, rely=0.1, anchor=tk.CENTER)
+        if self.entry_password.get() != self.accounts[username]['password']:
+            self.text_var.set("Login Failed. Check password")
+            return
 
-#Username and Password Entry
-user_id_entry = ctk.CTkEntry(master=frame, placeholder_text="Username", width=200, height = 30, border_width=2, corner_radius=10)
-user_id_entry.place(relx=0.5, rely=0.2, anchor=tk.CENTER)
+        self.text_var.set("Login Successful")
+        self._frame._user = self.accounts[username]
+        self._frame._user['username'] = username
+        match self.accounts[username]['role']:
+            case 'admin':
+                # Load admin view
+                self._frame.display_admin()
+            case 'customer':
+                # Load customer view
+                self._frame.display_customer()
+            case 'driver':
+                # Load driver view
+                self._frame.display_driver()
+            case _:
+                # Unknown role - display login
+                self.text_var.set("Unknown user role")
 
-password_entry = ctk.CTkEntry(master=frame, placeholder_text="Password", width=200, height = 30, border_width=2, corner_radius=10, show="*")
-password_entry.place(relx=0.5, rely=0.3, anchor=tk.CENTER)
-
-text_var = StringVar()
-
-#login_label = ctk.CTkLabel(master=frame, textvariable=text_var, width=120, height=25, font=("Arial", 12), fg_color=("white", "gray75"), corner_radius=8)
-login_label = ctk.CTkLabel(master=frame, textvariable=text_var, width=120, height=25, font=("Arial", 12))
-login_label.place(relx=0.5, rely=0.4, anchor=tk.CENTER)
-
-#Buttons
-btn1 = ctk.CTkButton(master=frame, text="Login", font=("Arial", 16), command=btn1_login)
-#btn1.pack(pady=10, padx=10)
-btn1.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
-
-btn2 = ctk.CTkButton(master=frame, text="Register", font=("Arial", 16))
-#btn2.pack(pady=10 , padx=10)
-btn2.place(relx=0.5, rely=0.6, anchor=tk.CENTER)
-
-btn3 = ctk.CTkButton(master=frame, text="Exit", font=("Arial", 16))
-#btn3.pack(pady=10 , padx=10)
-btn3.place(relx=0.5, rely=0.7, anchor=tk.CENTER)
-
-btn4 = ctk.CTkButton(master=frame, text="Driver Login", font=("Arial", 16))
-#btn4.pack(pady=10 , padx=10, anchor=ctk.SE)
-btn4.place(relx=0.1, rely=0.8, anchor=tk.SW)
-
-
-btn5 = ctk.CTkButton(master=frame, text="Admin Login", font=("Arial", 16))
-#btn5.pack(pady=10 , padx=10, anchor=ctk.SW)
-btn5.place(relx=0.8, rely=0.9, anchor=ctk.SE)
-
-window.mainloop()

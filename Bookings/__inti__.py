@@ -1,3 +1,3 @@
-from .database import DatabaseHelpers
+from .database import BookingDatabase
 
-__all__ = ["DatabaseHelpers"]
+__all__ = ["BookingDatabase"]
