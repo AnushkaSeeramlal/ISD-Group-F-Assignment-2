@@ -25,7 +25,7 @@ from roles import AdminView, CustomerView, DriverView
 class MainFrame(tk.Frame):
     '''Main frame for application
 
-    This is the main window that we display at the user.
+    This is the main window that we display to the user.
     Every view wipes and re-uses this frame.
     '''
 
