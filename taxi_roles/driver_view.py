@@ -7,7 +7,10 @@ class DriverView:
 
     def create_widgets(self):
         self._frame._clear_widgets()
-        self.label = tk.Label(self._frame, text="Welcome to Taxi Booking App - Driver")
+        self.label = tk.Label(
+            self._frame, 
+            text=f"Welcome to Taxi Booking App - Driver {self._frame._user['username']}"
+        )
         self.label.grid(row=0, column=1)
 
         # View Assigned Bookings button

@@ -10,7 +10,7 @@ class AdminView:
     def display_admin_index(self):
         self._frame._clear_widgets()
         self.label = tk.Label(self._frame,
-                              text="Welcome to Taxi Booking App - Admin role")
+                              text="Welcome to Taxi Booking App - Administrator")
         self.label.grid(row=0, column=1)
 
         # View Requested Bookings button

@@ -1,10 +1,3 @@
-def booking_create(self, customer_id, date, time, pickup_address,
-                   drop_off_address, payment_method):
-    '''Create a booking in the database.
-    '''
-    # Your implementation here
-
-
 import sqlite3 as sq
 
 
@@ -189,7 +182,7 @@ class BookingDatabase:
         updates = ",".join(update_list)
 
         update_sql = f"UPDATE USERS SET {updates} WHERE userid={userid}"
-        self.cursor.execute("SELECT * FROM USERS " + where_clause)
+        self.cursor.execute(update_sql)
 
     def fetch_payments(self, customer_id):
         '''Fetch all payments for a specific customer id.
