@@ -5,9 +5,8 @@
 #from tkinter.scrolledtext import ScrolledText
 #from tkinter.ttk import Combobox
 #import customtkinter as ctk
-#from login import LoginView 
+#from login import LoginView
 #from Bookings import DatabaseHelpers
-
 '''Main entry for application
 '''
 #Following the pep8 formatting standard
@@ -18,8 +17,10 @@ import tkinter as tk
 # External imports
 # Local imports
 import Bookings
-from login import LoginView
-from roles import AdminView, CustomerView, DriverView
+from taxi_login.login_view import LoginView
+from taxi_roles.admin_view import AdminView
+from taxi_roles.customer_view import CustomerView
+from taxi_roles.driver_view import DriverView
 
 
 class MainFrame(tk.Frame):
@@ -35,16 +36,16 @@ class MainFrame(tk.Frame):
         self.pack()
         self.create_default_widgets()
 
-        self.db = Bookings.BookingDatabase() 
+        self.db = Bookings.BookingDatabase()
         self._user = None
-
 
     def create_default_widgets(self):
         self.label = tk.Label(self, text="Welcome to Taxi Booking App")
         self.label.pack()
-        self._login_button = tk.Button(self, text="Login",command=self.display_login)
+        self._login_button = tk.Button(self,
+                                       text="Login",
+                                       command=self.display_login)
         self._login_button.pack(pady=50)
-
 
     def _clear_widgets(self):
         '''Clear all widgets on the frame.
@@ -87,7 +88,6 @@ def main():
     window.geometry("600x400")
     MainFrame(window)
     window.mainloop()
-
 
 
 main()

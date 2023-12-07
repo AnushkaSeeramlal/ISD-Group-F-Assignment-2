@@ -29,16 +29,6 @@ files = [
 macos-listener = ["pyobjc-framework-Cocoa"]
 
 [[package]]
-name = "login"
-version = "0.0.6"
-description = "Module for common login service"
-optional = false
-python-versions = ">=3"
-files = [
-    {file = "login-0.0.6.tar.gz", hash = "sha256:d3edf1e1a9ac26f43c4db7e2beb7649e411087f3a52f99a937740ba57f3d0e81"},
-]
-
-[[package]]
 name = "pillow"
 version = "10.1.0"
 description = "Python Imaging Library (Fork)"
@@ -105,18 +95,7 @@ files = [
 docs = ["furo", "olefile", "sphinx (>=2.4)", "sphinx-copybutton", "sphinx-inline-tabs", "sphinx-removed-in", "sphinxext-opengraph"]
 tests = ["check-manifest", "coverage", "defusedxml", "markdown2", "olefile", "packaging", "pyroma", "pytest", "pytest-cov", "pytest-timeout"]
 
-[[package]]
-name = "roles"
-version = "1.0.0"
-description = "Role based software development"
-optional = false
-python-versions = ">=3.7,<4.0"
-files = [
-    {file = "roles-1.0.0-py3-none-any.whl", hash = "sha256:5d7595df077e7a39db7edc36322b52ea861c7da65be2dd329f8b487a56f37494"},
-    {file = "roles-1.0.0.tar.gz", hash = "sha256:123d843e38c6e578c15533eb2c7cf98aaf53cbaa9fe78dc318dbc61297e2ed61"},
-]
-
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10.0,<3.11"
-content-hash = "28488f526298f97617b36ee58506bd9a29473f0d79edbf22cc7bedcd85c6041a"
+content-hash = "be4308ab21e5ec03acaac47940d9bba543daf9724076d49569dab31881d82cad"
