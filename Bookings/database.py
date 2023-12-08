@@ -76,7 +76,7 @@ class BookingDatabase:
                 INSERT INTO USERS (
                     username,  name,             password,        role,   state
                 ) VALUES (
-                    'admin',   'Administrator', 'adminpassword','admin', 1
+                    'admin',   'Administrator', 'adminpassword','admin', 1 
                 );
                 """)
             self.conn.commit()
