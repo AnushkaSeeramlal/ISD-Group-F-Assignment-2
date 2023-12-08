@@ -57,7 +57,7 @@ class LoginView:
         self.lbl_user_id.grid(row=2,column=0)
         self.entry_username = tk.Entry(self._frame, width=20)
         self.entry_username.grid(row=2,column=1)
-        
+
         # Password
         self.lbl_password = tk.Label(self._frame, text="Password: ")
         self.lbl_password.grid(row=3,column=0)
@@ -71,29 +71,29 @@ class LoginView:
         self.entry_name.grid(row=4,column=1)
 
         # address
-        self.lbl_address = tk.Label(self._frame, text="address: ")
+        self.lbl_address = tk.Label(self._frame, text="Address: ")
         self.lbl_address.grid(row=5,column=0)
         self.entry_address = tk.Entry(self._frame, width=20)
         self.entry_address.grid(row=5,column=1)
 
         # phone
-        self.lbl_phone = tk.Label(self._frame, text="phone: ")
+        self.lbl_phone = tk.Label(self._frame, text="Phone: ")
         self.lbl_phone.grid(row=6,column=0)
         self.entry_phone = tk.Entry(self._frame, width=20)
         self.entry_phone.grid(row=6,column=1)
 
         # email
-        self.lbl_email = tk.Label(self._frame, text="email: ")
+        self.lbl_email = tk.Label(self._frame, text="Email: ")
         self.lbl_email.grid(row=7,column=0)
         self.entry_email = tk.Entry(self._frame, width=20)
         self.entry_email.grid(row=7,column=1)
 
         # license_plate
-        self.lbl_license_plate = tk.Label(self._frame, text="License Plate (drivers only): ")
+        self.lbl_license_plate = tk.Label(self._frame, text="License Plate (Drivers Only): ")
         self.lbl_license_plate.grid(row=9,column=0)
         self.entry_license_plate = tk.Entry(self._frame, width=20)
         self.entry_license_plate.grid(row=9,column=1)
-        
+
         # Role
         role_options = [
             # 'admin', # Future use
@@ -126,9 +126,9 @@ class LoginView:
             account_state = 1 # Don't need to approve drivers.
         else:
             account_state = 1
-       
+
         self._frame.db.user_create(
-            username=self.entry_username.get(),
+            username=self.entry_username.get().strip(),
             password=self.entry_password.get(),
             name=self.entry_name.get(),
             address=self.entry_address.get(),
@@ -147,12 +147,13 @@ class LoginView:
         '''Login to account and if successful redirect to appropriate view.
         '''
         username = self.entry_username.get()
+        print(f"Login by user: {username}")
         db_result = self._frame.db.user_retrieve(username=username)
         if not db_result:
             self.text_var.set("User does not exist")
             return
 
-        user_db_record = dict(db_result[0])
+        user_db_record = db_result[0]
         print(f"Login user object: {user_db_record}")
 
         if self.entry_password.get() != user_db_record['password']:

@@ -37,6 +37,11 @@ class BookingDatabase:
         self.cursor = self.conn.cursor()
         self.setup_tables()
 
+    def _result_to_dict(self, result):
+        '''
+        '''
+        return list(map(dict, result))
+
     def setup_tables(self):
         '''
         Setup the database tables.
@@ -47,7 +52,7 @@ class BookingDatabase:
         #   2 : Pending Approval
         sql_create_user_table = """
         CREATE TABLE IF NOT EXISTS USERS (
-            userid         INTEGER PRIMARY KEY,
+            userid         INTEGER PRIMARY KEY AUTOINCREMENT,
             name           TEXT NOT NULL,
             username       TEXT NOT NULL UNIQUE,
             password       TEXT NOT NULL,
@@ -55,8 +60,8 @@ class BookingDatabase:
             address        TEXT NULL,
             phone          TEXT NULL,
             email          TEXT NULL,
-            LicencePlate   TEXT NULL,
-            DriverState    INT  NOT NULL DEFAULT 0,   /* 0: Unavailable, 1: Available */
+            licenceplate   TEXT NULL,
+            driverstate    INT  NOT NULL DEFAULT 0,   /* 0: Unavailable, 1: Available */
             state          INT  NOT NULL              /* 0: Inactive, 1: Active, 2: Pending Approval */
         );
         """
@@ -79,15 +84,15 @@ class BookingDatabase:
         # Bookings table
         sql_create_trip_table = """
         CREATE TABLE IF NOT EXISTS TRIP (
-            tripid             INT PRIMARY KEY NOT NULL,
+            tripid             INTEGER PRIMARY KEY AUTOINCREMENT,
             customerid         INT NOT NULL,               /* Customer requesting ride */
             ridecost           INT NOT NULL,               /* Multiplied by 100 */
             paymentterms       TEXT NOT NULL,              /* 'cod' */
             requesttime        DATETIME NOT NULL,          /* When the customer requested the ride */
-            PickupAddress      TEXT NOT NULL,
-            DestinationAddress TEXT NOT NULL,
+            pickupaddress      TEXT NOT NULL,
+            destinationaddress TEXT NOT NULL,
             driverid           INT NULL,                   /* Driver accepting the booking */
-            tripstatus         TEXT NOT NULL               /* 'pending', 'driver_selected', 'en_route', 'started', 'completed' */
+            tripstatus         TEXT NOT NULL               /* 'pending', 'driver_selected', 'en_route', 'started', 'payment_completed', 'completed' */
         );
         """
         # Future fields
@@ -98,7 +103,7 @@ class BookingDatabase:
 
         sql_create_payment_table = """
         CREATE TABLE IF NOT EXISTS PAYMENT (
-            paymentid           INT PRIMARY KEY NOT NULL,
+            paymentid           INTEGER PRIMARY KEY AUTOINCREMENT,
             tripid              INT NOT NULL,
             paymentamount       INT NOT NULL,               /* Multiplied by 100 */
             paymentmethod       TEXT NOT NULL,              /* 'cod' */
@@ -120,7 +125,7 @@ class BookingDatabase:
         license_plate=None,
     ):
         '''Create a user in the database.
-       
+
         '''
         if role == 'driver':
             driverstate = 1
@@ -128,8 +133,16 @@ class BookingDatabase:
             driverstate = 0
         self.cursor.execute(f"""
             INSERT INTO USERS (
-                username, password, role, state, name, address,
-                phone, email, LicencePlate, DriverState
+                username,
+                password,
+                role,
+                state,
+                name,
+                address,
+                phone,
+                email,
+                licenceplate,
+                driverstate
             ) VALUES (
                 '{username}',
                 '{password}',
@@ -145,25 +158,31 @@ class BookingDatabase:
         """)
         self.conn.commit()
 
-    def user_retrieve(self, id=None, username=None):
+    def user_retrieve(self, userid=None, username=None, role=None):
         '''Fetch a user from the database.
         '''
-        if id is not None:
-            where_clause = f"WHERE userid={id}"
+        if userid is not None:
+            where_clause = f"WHERE userid={userid}"
         elif username is not None:
             where_clause = f"WHERE username='{username}'"
+        elif role is not None:
+            where_clause = f"WHERE role='{role}'"
         else:
             where_clause = ''
 
-        self.cursor.execute("SELECT * FROM USERS " + where_clause)
-        return self.cursor.fetchall()
+        full_sql = "SELECT * FROM USERS " + where_clause
+        print(f"SQL: {full_sql}")
+
+        self.cursor.execute(full_sql)
+        return self._result_to_dict(self.cursor.fetchall())
 
     def user_update(self,
                     userid,
                     username=None,
                     password=None,
                     role=None,
-                    state=None):
+                    state=None,
+                    driverstate=None):
         '''Update a user.
 
         id is mandatory.
@@ -171,47 +190,137 @@ class BookingDatabase:
         '''
         update_list = []
         if username is not None:
-            update_list += f"username='{username}'"
+            update_list.append(f"username='{username}'")
         if password is not None:
-            update_list += f"password='{password}'"
+            update_list.append(f"password='{password}'")
         if role is not None:
-            update_list += f"role='{role}'"
+            update_list.append(f"role='{role}'")
         if state is not None:
-            update_list += f"state={state}"
+            update_list.append(f"state={state}")
+        if driverstate is not None:
+            update_list.append(f"driverstate={driverstate}")
 
         updates = ",".join(update_list)
 
         update_sql = f"UPDATE USERS SET {updates} WHERE userid={userid}"
         self.cursor.execute(update_sql)
+        self.conn.commit()
 
-    def fetch_payments(self, customer_id):
-        '''Fetch all payments for a specific customer id.
+    def trip_create(
+        self,
+        customerid,
+        ridecost,
+        requesttime,
+        pickupaddress,
+        destinationaddress,
+        driverid=None,
+        tripstatus='pending',
+        paymentterms='cod',
+    ):
+        '''Trip create.
         '''
-        sql_fetch_payments = """
-        SELECT * FROM PAYMENT WHERE Customer_ID = ?
-        """
-        response = self.conn.execute(sql_fetch_payments, (customer_id, ))
-        return response.fetchall()
+        self.cursor.execute(f"""
+            INSERT INTO TRIP (
+                customerid,
+                ridecost,
+                paymentterms,
+                requesttime,
+                pickupaddress,
+                destinationaddress,
+                driverid,
+                tripstatus
+            ) VALUES (
+                '{customerid}',
+                '{ridecost}',
+                '{paymentterms}',
+                '{requesttime}',
+                '{pickupaddress}',
+                '{destinationaddress}',
+                '{driverid}',
+                '{tripstatus}'
+            )
+        """)
+        self.conn.commit()
 
-    def fetch_bookings(self, customer_id=None):
-        '''Fetch all bookings for a specific customer id.
+    def trip_retrieve(self,
+                      tripid=None,
+                      customerid=None,
+                      driverid=None,
+                      tripstatus=None):
+        '''Fetch a trip
         '''
-        sql_fetch_bookings = """
-        SELECT * FROM TRIP WHERE Customer_ID = ?
-        """
-        response = self.conn.execute(sql_fetch_bookings, (customer_id, ))
-        return response.fetchall()
+        if tripid is not None:
+            where_clause = f"WHERE tripid={tripid}"
+        elif customerid is not None:
+            where_clause = f"WHERE customerid='{customerid}'"
+        elif driverid is not None:
+            where_clause = f"WHERE driverid='{driverid}'"
+        elif tripstatus is not None:
+            where_clause = f"WHERE tripstatus='{tripstatus}'"
+        else:
+            where_clause = ''
 
-    def fetch_all_bookings(self):
-        '''Fetch all bookings.
-        '''
-        sql_fetch_all_bookings = """
-        SELECT * FROM TRIP
-        """
-        response = self.conn.execute(sql_fetch_all_bookings)
-        return response.fetchall()
+        self.cursor.execute("SELECT * FROM TRIP " + where_clause)
+        return self._result_to_dict(self.cursor.fetchall())
 
-    def booking_create(self, customer_id, date, time, pickup_address,
-                       drop_off_address, payment_method):
-        '''Create a booking in the database.
+    def trip_update(self, tripid, **kwargs):
+        '''Update a trip.
         '''
+        print(kwargs)
+        update_list = []
+        for k, v in kwargs.items():
+            update_list.append(f"{k}='{v}'")
+
+        print(update_list)
+
+        updates = ",".join(update_list)
+
+        update_sql = f"UPDATE TRIP SET {updates} WHERE tripid={tripid}"
+        print(f"trip_update SQL: {update_sql}")
+        self.cursor.execute(update_sql)
+        self.conn.commit()
+
+    def payment_create(self, tripid, paymentamount, paymentmethod,
+                       paymenttime):
+        '''Payment create.
+        '''
+        self.cursor.execute(f"""
+            INSERT INTO PAYMENT (
+                tripid,
+                paymentamount,
+                paymentmethod,
+                paymenttime
+            ) VALUES (
+                '{tripid}',
+                '{paymentamount}',
+                '{paymentmethod}',
+                '{paymenttime}'
+            )
+        """)
+        self.conn.commit()
+
+    def payment_retrieve(self, paymentid=None, tripid=None):
+        '''Fetch a payment.
+        '''
+        if paymentid is not None:
+            where_clause = f"WHERE paymentid={paymentid}"
+        elif tripid is not None:
+            where_clause = f"WHERE tripid='{tripid}'"
+        else:
+            where_clause = ''
+
+        self.cursor.execute("SELECT * FROM PAYMENT " + where_clause)
+        return self._result_to_dict(self.cursor.fetchall())
+
+    def payment_update(self, paymentid, **kwargs):
+        '''Update a payment.
+        '''
+        update_list = []
+        for k, v in kwargs.items():
+            update_list.append(f"{k}='{v}'")
+
+        updates = ",".join(update_list)
+
+        update_sql = f"UPDATE PAYMENT SET {updates} WHERE paymentid={paymentid}"
+        self.cursor.execute(update_sql)
+        self.conn.commit()

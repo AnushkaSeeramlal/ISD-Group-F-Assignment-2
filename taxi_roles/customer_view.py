@@ -1,28 +1,36 @@
+# System imports
+import datetime
+import random
+
 import tkinter as tk
 
+
 class CustomerView:
+
     def __init__(self, frame=None):
         self._frame = frame
-        self.create_widgets()
+        self.customer_index()
 
-    def create_widgets(self):
+    def customer_index(self):
         self._frame._clear_widgets()
-        self.label = tk.Label(
+        self.header_label = tk.Label(
             self._frame,
-            text=f"Welcome to Taxi Booking App - Customer {self._frame._user['username']}"
+            text=
+            f"Welcome to Taxi Booking App - Customer {self._frame._user['username']}"
         )
-        self.label.grid(row=0, column=1)
+        self.header_label.grid(row=0, column=1)
 
         # Book Taxi button
-        self.btn_book_taxi = tk.Button(self._frame, 
-                                       text="Book Taxi", 
+        self.btn_book_taxi = tk.Button(self._frame,
+                                       text="Book Taxi",
                                        command=self.make_booking_window)
         self.btn_book_taxi.grid(row=1, column=1)
 
         # View Booking History button
-        self.btn_view_history = tk.Button(self._frame, 
-                                          text="View Booking History", 
-                                          command=self.view_booking_history_window)
+        self.btn_view_history = tk.Button(
+            self._frame,
+            text="View Booking History",
+            command=self.view_booking_history_window)
         self.btn_view_history.grid(row=2, column=1)
 
         # Logout button
@@ -32,77 +40,140 @@ class CustomerView:
         self.btn_logout.grid(row=4, column=1)
 
     def make_booking_window(self):
-        # Example: Display a window to enter booking details in the same frame
-        new_frame = tk.Frame(self._frame)
-        new_frame.grid(row=5, column=1)
-
-        # Pick-Up Address
-        lbl_pickup = tk.Label(new_frame, text="Pick-Up Address:")
-        lbl_pickup.grid(row=0, column=0)
-        entry_pickup = tk.Entry(new_frame)
-        entry_pickup.grid(row=0, column=1)
-
-        # Drop-Off Address
-        lbl_dropoff = tk.Label(new_frame, text="Drop-Off Address:")
-        lbl_dropoff.grid(row=1, column=0)
-        entry_dropoff = tk.Entry(new_frame)
-        entry_dropoff.grid(row=1, column=1)
-
-        # Date
-        lbl_date = tk.Label(new_frame, text="Date:")
-        lbl_date.grid(row=2, column=0)
-        entry_date = tk.Entry(new_frame)
-        entry_date.grid(row=2, column=1)
-
-        # Time
-        lbl_time = tk.Label(new_frame, text="Time:")
-        lbl_time.grid(row=3, column=0)
-        entry_time = tk.Entry(new_frame)
-        entry_time.grid(row=3, column=1)
-
-        # Payment Method
-        lbl_payment = tk.Label(new_frame, text="Payment Method:")
-        lbl_payment.grid(row=4, column=0)
-        entry_payment = tk.Entry(new_frame)
-        entry_payment.grid(row=4, column=1)
-
-        # Submit Button
-        btn_submit = tk.Button(new_frame, text="Submit Booking", command=lambda: self.submit_booking(entry_pickup.get(),
-                                                                                                     entry_dropoff.get(),
-                                                                                                     entry_date.get(),
-                                                                                                     entry_time.get(),
-                                                                                                     entry_payment.get()))
-        btn_submit.grid(row=5, column=1)
-
-    def submit_booking(self, pickup, dropoff, date, time, payment_method):
-        # Example: Handle the submitted booking details
-        # You should implement the actual logic to handle bookings based on your requirements
-        print(f"Booking Details: Pick-Up={pickup}, Drop-Off={dropoff}, Date={date}, Time={time}, Payment Method={payment_method}")
-
-    def view_booking_history_window(self):
-        # Example: Display a new frame to show booking history
-        booking_history = [{"booking_id": 1, "pickup": "Location A", "dropoff": "Location B", "date": "2023-01-01"},
-                           {"booking_id": 2, "pickup": "Location C", "dropoff": "Location D", "date": "2023-02-01"}]
-        self.display_list_in_frame("Booking History", booking_history)
-
-    def display_list_in_frame(self, title, data):
-        # Clear existing widgets in the frame
+        '''Make a trip booking.
+        '''
         self._frame._clear_widgets()
 
-        # Display list in the same frame
-        listbox = tk.Listbox(self._frame)
-        for item in data:
-            listbox.insert(tk.END, self.format_listbox_item(item))
+        curr_time = datetime.datetime.now()
 
-        listbox.grid(row=1, column=1)
+        self.header_label = tk.Label(
+            self._frame, text=f"Book a trip - '{self._frame._user['name']}'")
+        self.header_label.grid(row=1, column=1)
+
+        # Pick-Up Address
+        lbl_pickup = tk.Label(self._frame, text="Pick-Up Address: ")
+        lbl_pickup.grid(row=3, column=0)
+        self.entry_pickup = tk.Entry(self._frame)
+        self.entry_pickup.grid(row=3, column=1)
+
+        # Drop-Off Address
+        lbl_dropoff = tk.Label(self._frame, text="Drop-Off Address:")
+        lbl_dropoff.grid(row=4, column=0)
+        self.entry_dropoff = tk.Entry(self._frame)
+        self.entry_dropoff.grid(row=4, column=1)
+
+        # Date
+        self._entry_date = tk.StringVar()
+        lbl_date = tk.Label(self._frame, text="Date:")
+        lbl_date.grid(row=5, column=0)
+        self.entry_date = tk.Entry(self._frame, textvariable=self._entry_date)
+        self.entry_date.grid(row=5, column=1)
+        self._entry_date.set(curr_time.strftime("%Y-%m-%d"))
+
+        # Time
+        self._entry_time = tk.StringVar()
+        lbl_time = tk.Label(self._frame, text="Time:")
+        lbl_time.grid(row=6, column=0)
+        self.entry_time = tk.Entry(self._frame, textvariable=self._entry_time)
+        self.entry_time.grid(row=6, column=1)
+        self._entry_time.set(curr_time.strftime("%H:%M"))
+
+        # Payment Method
+        payment_types = [
+            'cod',
+        ]
+        self.payment_type = tk.StringVar()
+        self.lbl_payment = tk.Label(self._frame, text="Payment Method:")
+        self.lbl_payment.grid(row=8, column=0)
+        self.entry_payment_type = tk.OptionMenu(self._frame, self.payment_type,
+                                                *payment_types)
+        self.entry_payment_type.grid(row=8, column=1)
+
+        # Price
+        self.price_var = tk.StringVar()
+        self.price_label = tk.Label(self._frame,
+                                    text=f"Price: TBD",
+                                    textvariable=self.price_var)
+        self.price_label.grid(row=9, column=1)
+
+        # Submit Button
+        btn_submit = tk.Button(
+            self._frame,
+            text="Submit Booking",
+            command=self.submit_booking,
+        )
+        btn_submit.grid(row=10, column=1)
+
+        # Back to customer index
+        self.btn_customer_index = tk.Button(self._frame,
+                                            text="Back",
+                                            command=self.customer_index)
+        self.btn_customer_index.grid(row=11, column=1)
+
+    def submit_booking(self):
+        '''Create a trip booking.
+        '''
+        pickupaddress = self.entry_pickup.get()
+        destinationaddress = self.entry_dropoff.get()
+        requesttime = f"{self._entry_date.get()} {self._entry_time.get()}"
+        paymentterms = self.payment_type.get()
+        ridecost = random.randint(500, 1000) / 100
+        self.price_var.set(f"Price: ${ridecost}")
+        self._frame.db.trip_create(
+            customerid=self._frame._user['userid'],
+            requesttime=requesttime,
+            ridecost=ridecost,
+            pickupaddress=pickupaddress,
+            destinationaddress=destinationaddress,
+            paymentterms=paymentterms,
+        )
+
+    def view_booking_history_window(self):
+        '''Booking history list.
+        '''
+        # Example: Display a new frame to show booking history
+        self._frame._clear_widgets()
+
+        # Header
+        self.header_label = tk.Label(
+            self._frame, text=f"Your trips - '{self._frame._user['name']}'")
+        self.header_label.grid(row=1, column=1)
+
+        # "Booking History",
+        booking_history = self._frame.db.trip_retrieve(
+            customerid=self._frame._user['userid'])
+        self._booking_list = self.display_list_in_frame(
+            booking_history, self.format_trip)
+        self._booking_list.grid(row=5, column=1)
 
         # Back button to return to the main view
-        back_button = tk.Button(self._frame, text="Back", command=self.create_widgets)
-        back_button.grid(row=2, column=1)
+        back_button = tk.Button(self._frame,
+                                text="Back",
+                                command=self.customer_index)
+        back_button.grid(row=10, column=1)
+
+    def display_list_in_frame(self, data, formatter):
+        '''Display the list in data in a listbox.
+        '''
+        # Display list in the same frame
+        listbox = tk.Listbox(self._frame, width=100)
+        for item in data:
+            listbox.insert(tk.END, formatter(item))
+
+        return listbox
 
     @staticmethod
-    def format_listbox_item(item):
-        return f"Booking ID: {item['booking_id']}, Pick-Up: {item['pickup']}, Drop-Off: {item['dropoff']}, Date: {item['date']}"
+    def fomat_dict(item):
+        return str(item)
+
+    @staticmethod
+    def format_trip(item):
+        print(f"Trip obj: {item}")
+        trip_str = f"TripID: {item['tripid']} From: {item['pickupaddress']} To: {item['destinationaddress']} Date: {item['requesttime']} Cost: {item['ridecost']} State: {item['tripstatus']}"
+        if item['driverid'] != 'None':
+            trip_str += f" DriverID: {item['driverid']}"
+        return trip_str
+
 
 # Example usage:
 # customer_view = CustomerView()  # Assuming the frame is initialized appropriately

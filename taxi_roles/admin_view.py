@@ -8,24 +8,19 @@ class AdminView:
         self.display_admin_index()
 
     def display_admin_index(self):
+        '''Administrator index.
+        '''
         self._frame._clear_widgets()
-        self.label = tk.Label(self._frame,
+        self.header_label = tk.Label(self._frame,
                               text="Welcome to Taxi Booking App - Administrator")
-        self.label.grid(row=0, column=1)
+        self.header_label.grid(row=0, column=1)
 
         # View Requested Bookings button
         self.btn_view_requested_bookings = tk.Button(
             self._frame,
-            text="View Requested Bookings",
+            text="View & Assign Requested Bookings",
             command=self.view_requested_bookings_window)
         self.btn_view_requested_bookings.grid(row=1, column=1)
-
-        # Assign Driver to Booking button
-        self.btn_assign_driver = tk.Button(
-            self._frame,
-            text="Assign Driver to Booking",
-            command=self.assign_driver_to_booking_window)
-        self.btn_assign_driver.grid(row=2, column=1)
 
         # Confirm Booking button
         self.btn_confirm_booking = tk.Button(
@@ -68,23 +63,87 @@ class AdminView:
         self.btn_logout.grid(row=10, column=1)
 
     def view_requested_bookings_window(self):
-        # Example: Display a new frame to show requested bookings
-        requested_bookings = [{
-            "booking_id": 1,
-            "pickup": "Location A",
-            "dropoff": "Location B",
-            "customer_name": "John Doe"
-        }, {
-            "booking_id": 2,
-            "pickup": "Location C",
-            "dropoff": "Location D",
-            "customer_name": "Jane Smith"
-        }]
-        self.display_list_in_frame("Requested Bookings", requested_bookings)
+        '''Show requested bookings.
+        '''
+        self._frame._clear_widgets()
 
-    def assign_driver_to_booking_window(self):
-        # Example: Display a new frame to assign a driver to a booking
-        self.display_message_in_frame("Driver Assigned!")
+        # Headers
+        self.header_label = tk.Label(self._frame,
+                              text="Requested Trips to assign")
+        self.header_label.grid(row=0, column=1)
+
+        self.header_label_trips = tk.Label(self._frame,
+                              text="Trips")
+        self.header_label_trips.grid(row=2, column=0)
+
+        self.header_label_drivers = tk.Label(self._frame,
+                              text="Drivers")
+        self.header_label_drivers.grid(row=2, column=2)
+
+        # Trips
+        requested_bookings = self._frame.db.trip_retrieve(tripstatus='pending')
+        self._booking_var = tk.IntVar(self._frame, -1)
+        grid_location_booking = 5
+        for curr_booking in requested_bookings:
+            curr_booking_customer = self._frame.db.user_retrieve(userid=curr_booking['customerid'])
+            curr_radio_button_1 = tk.Radiobutton(
+                self._frame,
+                text=f"{curr_booking_customer[0]['name']} from {curr_booking['pickupaddress']} to {curr_booking['destinationaddress']}",
+                variable=self._booking_var,
+                value=curr_booking['tripid'],
+                # command=group_1_select,
+            )
+            curr_radio_button_1.grid(row=grid_location_booking, column=0)
+            grid_location_booking += 1
+
+        available_drivers = filter(
+            lambda x: x['driverstate'] == 1 and x['state'] == 1,
+            self._frame.db.user_retrieve(role='driver'),
+        )
+        self._driver_var = tk.IntVar(self._frame, -1)
+        grid_location_driver = 5
+        for curr_driver in available_drivers:
+            curr_radio_button_1 = tk.Radiobutton(
+                self._frame,
+                text=f"{curr_driver['name']}",
+                variable=self._driver_var,
+                value=curr_driver['userid'],
+            )
+            curr_radio_button_1.grid(row=grid_location_driver, column=2)
+            grid_location_driver += 1
+
+        if grid_location_booking > grid_location_driver:
+            max_grid_select = grid_location_booking
+        else:
+            max_grid_select = grid_location_driver
+
+        # Back button to return to the main view
+        back_button = tk.Button(self._frame,
+                                text="Assign Driver to Trip",
+                                command=self.assign_driver_to_trip)
+        back_button.grid(row=max_grid_select + 1, column=1)
+
+        # Back button to return to the main view
+        back_button = tk.Button(self._frame,
+                                text="Back",
+                                command=self.display_admin_index)
+        back_button.grid(row=max_grid_select + 2, column=1)
+
+    def assign_driver_to_trip(self):
+        '''Assign a driver to the trip.
+        '''
+        trip_id = self._booking_var.get()
+        driver_id = self._driver_var.get()
+        print(f"Trip: {trip_id} ; Driver: {driver_id}")
+        # Set the driver on the trip
+        self._frame.db.trip_update(
+            tripid=trip_id,
+            driverid=driver_id,
+            tripstatus='driver_selected'
+        )
+        # Set the driver as unavailable
+        self._frame.db.user_update(userid=driver_id, driverstate=0)
+        self.view_requested_bookings_window()
 
     def confirm_booking_window(self):
         # Example: Display a new frame to confirm a booking
@@ -167,9 +226,9 @@ class AdminView:
         '''List the registered users.
             '''
         self._frame._clear_widgets()
-        self.label = tk.Label(self._frame,
+        self.header_label = tk.Label(self._frame,
                               text="Welcome to Taxi Booking App - List users")
-        self.label.grid(row=0, column=1)
+        self.header_label.grid(row=0, column=1)
 
         # create listbox object
         self.user_listbox = tk.Listbox(self._frame,
@@ -197,7 +256,25 @@ class AdminView:
                                 command=self.display_admin_index)
         back_button.grid(row=5, column=1)
 
+    def display_list(self, data, formatter, width=100):
+        '''Display the list in data in a listbox.
+        '''
+        # Display list in the same frame
+        listbox = tk.Listbox(self._frame, width=width)
+        for item in data:
+            listbox.insert(tk.END, formatter(item))
 
-# Example usage:
-# admin_view = AdminView()  # Assuming the frame is initialized appropriately
-# admin_view.view_requested_bookings_window()  # or admin_view.manage_current_drivers_window(), etc.
+        return listbox
+
+    @staticmethod
+    def fomat_dict(item):
+        return str(item)
+
+    @staticmethod
+    def format_trip(item):
+        print(f"Trip obj: {item}")
+        trip_str = f"TripID: {item['tripid']} From: {item['pickupaddress']} To: {item['destinationaddress']} Date: {item['requesttime']} Cost: {item['ridecost']}"
+        if item['driverid'] != 'None':
+            trip_str += f" DriverID: {item['driverid']}"
+        return trip_str
+
